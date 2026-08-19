@@ -18,5 +18,5 @@ Cálculo automático de fechas de entrega (5 días hábiles).
 *   **Gestión de Dependencias:** Maven.
 *   **Librerías:** JDBC, Oracle PKI, JCalendar.
 
-## 👥 Desarrolladores
-*   Equipo de Laboratorio UTEZ - Agosto 2026.
+Desarrolladores
+Equipo de Laboratorio UTEZ - Agosto 2026.
