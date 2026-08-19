@@ -19,12 +19,5 @@ Proyecto desarrollado para la gestión eficiente de recursos (laptops, proyector
 *   **Gestión de Dependencias:** Maven.
 *   **Librerías:** JDBC, Oracle PKI, JCalendar.
 
-## 📦 Estructura del Proyecto
-
-*   `src/main/java`: Código fuente de la aplicación.
-*   `pom.xml`: Configuración de dependencias de Maven.
-*   `README.md`: Documentación del proyecto.
-*   *Nota: La carpeta `Wallet/` ha sido excluida del repositorio por razones de seguridad de la base de datos.*
-
 ## 👥 Desarrolladores
 *   Equipo de Laboratorio UTEZ - Agosto 2026.

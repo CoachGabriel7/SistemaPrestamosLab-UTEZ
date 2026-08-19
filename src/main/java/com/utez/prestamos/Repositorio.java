@@ -379,6 +379,43 @@ public class Repositorio {
         }
     }
 
+    public Object[] obtenerDatosUsuario(int idUsuario) throws SQLException {
+        String sql = "SELECT NOMBRE, APELLIDO, MATRICULA, CORREO, TELEFONO, ID_TIPO_USUARIO FROM USUARIO WHERE ID_USUARIO = ?";
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Object[]{
+                            rs.getString("NOMBRE"),
+                            rs.getString("APELLIDO"),
+                            rs.getString("MATRICULA"),
+                            rs.getString("CORREO"),
+                            rs.getString("TELEFONO"),
+                            rs.getInt("ID_TIPO_USUARIO")
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    public void actualizarUsuario(int idUsuario, String nombre, String apellido, String matricula,
+                                  String correo, String telefono, int idTipo) throws SQLException {
+        String sql = "UPDATE USUARIO SET NOMBRE = ?, APELLIDO = ?, MATRICULA = ?, CORREO = ?, TELEFONO = ?, ID_TIPO_USUARIO = ? WHERE ID_USUARIO = ?";
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre.trim());
+            ps.setString(2, apellido.trim());
+            ps.setString(3, matricula.trim());
+            ps.setString(4, correo.trim());
+            ps.setString(5, telefono.trim());
+            ps.setInt(6, idTipo);
+            ps.setInt(7, idUsuario);
+            ps.executeUpdate();
+        }
+    }
+
     private int siguienteId(Connection con, String tabla, String columna) throws SQLException {
         String sql = "SELECT NVL(MAX(" + columna + "), 0) + 1 FROM " + tabla;
         try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sql)) {

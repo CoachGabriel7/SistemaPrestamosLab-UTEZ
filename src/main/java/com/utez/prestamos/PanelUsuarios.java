@@ -37,12 +37,14 @@ public class PanelUsuarios extends PanelBase {
 
         // Botones de acción
         JButton agregar = Estilo.botonPrincipal("+ Nuevo usuario");
+        JButton editar = Estilo.botonPrincipal("• Editar usuario");
         JButton eliminar = Estilo.botonPrincipal("- Eliminar usuario");
 
         // Agrupamos los botones a la derecha del encabezado
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         panelBotones.setOpaque(false);
         panelBotones.add(eliminar);
+        panelBotones.add(editar);
         panelBotones.add(agregar);
 
         JPanel encabezado = new JPanel(new BorderLayout());
@@ -93,6 +95,7 @@ public class PanelUsuarios extends PanelBase {
 
         // Eventos de los botones
         agregar.addActionListener(e -> new DialogoUsuario(ventana, repositorio).setVisible(true));
+        editar.addActionListener(e -> editarUsuarioSeleccionado());
         eliminar.addActionListener(e -> eliminarUsuarioSeleccionado());
 
         buscar.getDocument().addDocumentListener(new DocumentListener() {
@@ -103,6 +106,20 @@ public class PanelUsuarios extends PanelBase {
 
         add(encabezado, BorderLayout.NORTH);
         add(centro, BorderLayout.CENTER);
+    }
+
+    private void editarUsuarioSeleccionado() {
+        int filaVista = tabla.getSelectedRow();
+        if (filaVista == -1) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecciona un usuario de la tabla para editar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int filaModelo = tabla.convertRowIndexToModel(filaVista);
+        // Usamos toString() y parseo para evitar errores de casting si Oracle devuelve BigDecimal
+        int id = Integer.parseInt(modelo.getValueAt(filaModelo, 0).toString());
+
+        new DialogoUsuario(ventana, repositorio, id).setVisible(true);
     }
 
     private void eliminarUsuarioSeleccionado() {
