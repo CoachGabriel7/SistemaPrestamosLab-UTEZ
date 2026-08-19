@@ -1,0 +1,33 @@
+# Oracle Wallet - SEGURIDAD CRÍTICA
+# No subir estos archivos porque contienen las credenciales de la base de datos en la nube.
+/Wallet/
+/wallet/
+Wallet/
+wallet/
+
+# Compilación y temporales
+/target/
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDEs (Android Studio / IntelliJ / VS Code)
+.idea/
+*.iml
+*.iws
+.project
+.settings/
+.classpath
+.vscode/
+
+# Maven Wrapper
+.mvn/
+mvnw
+mvnw.cmd
