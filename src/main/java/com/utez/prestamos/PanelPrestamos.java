@@ -163,7 +163,16 @@ public class PanelPrestamos extends PanelBase {
     public void cargarDatos() {
         try {
             modelo.setRowCount(0);
-            repositorio.consultarPrestamos().forEach(modelo::addRow);
+            repositorio.consultarPrestamos().forEach(p -> {
+                modelo.addRow(new Object[]{
+                        p.getId(),
+                        p.getSolicitante(),
+                        p.getRecurso(),
+                        p.getFechaPrestamo(),
+                        p.getFechaLimite(),
+                        p.getEstado()
+                });
+            });
         } catch (Exception e) {
             error(e);
         }

@@ -130,7 +130,15 @@ public class PanelRecursos extends PanelBase {
     public void cargarDatos() {
         try {
             modelo.setRowCount(0);
-            repositorio.consultarRecursos().forEach(modelo::addRow);
+            repositorio.consultarRecursos().forEach(r -> {
+                modelo.addRow(new Object[]{
+                        r.getId(),
+                        r.getNombre(),
+                        r.getNumeroSerie(),
+                        r.getTipo(),
+                        r.getEstado()
+                });
+            });
         } catch (Exception e) {
             error(e);
         }

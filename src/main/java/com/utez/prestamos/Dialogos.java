@@ -400,6 +400,7 @@ class DialogoRecurso extends DialogoBase {
 }
 
 class DialogoUsuario extends DialogoBase {
+    private final Integer idUsuario;
     private final JTextField nombre = new JTextField();
     private final JTextField apellido = new JTextField();
     private final JTextField matricula = new JTextField();
@@ -408,15 +409,45 @@ class DialogoUsuario extends DialogoBase {
     private final JComboBox<Repositorio.Opcion> tipo = new JComboBox<>();
 
     DialogoUsuario(VentanaPrincipal ventana, Repositorio repositorio) {
-        super(ventana, repositorio, "Registrar usuario");
+        this(ventana, repositorio, null);
+    }
+
+    DialogoUsuario(VentanaPrincipal ventana, Repositorio repositorio, Integer idUsuario) {
+        super(ventana, repositorio, idUsuario == null ? "Registrar usuario" : "Editar usuario");
+        this.idUsuario = idUsuario;
         agregar("Nombre:", nombre);
         agregar("Apellido:", apellido);
         agregar("Matrícula:", matricula);
         agregar("Correo:", correo);
         agregar("Teléfono:", telefono);
         agregar("Tipo de usuario:", tipo);
-        try { repositorio.tiposUsuario().forEach(tipo::addItem); }
-        catch (Exception e) { fallo(e); }
+        try {
+            repositorio.tiposUsuario().forEach(tipo::addItem);
+            if (idUsuario != null) {
+                cargarDatos();
+            }
+        } catch (Exception e) { fallo(e); }
+    }
+
+    private void cargarDatos() {
+        try {
+            Object[] datos = repositorio.obtenerDatosUsuario(idUsuario);
+            if (datos != null) {
+                nombre.setText((String) datos[0]);
+                apellido.setText((String) datos[1]);
+                matricula.setText((String) datos[2]);
+                correo.setText((String) datos[3]);
+                telefono.setText((String) datos[4]);
+                // Evitamos error de casting si el ID viene de Oracle como BigDecimal
+                int idTipo = Integer.parseInt(datos[5].toString());
+                for (int i = 0; i < tipo.getItemCount(); i++) {
+                    if (tipo.getItemAt(i).id() == idTipo) {
+                        tipo.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) { fallo(e); }
     }
 
     @Override protected void guardar() {
@@ -427,9 +458,16 @@ class DialogoUsuario extends DialogoBase {
             }
             Repositorio.Opcion tu = (Repositorio.Opcion) tipo.getSelectedItem();
             if (tu == null) throw new IllegalArgumentException("Selecciona el tipo de usuario.");
-            repositorio.registrarUsuario(nombre.getText(), apellido.getText(), matricula.getText(),
-                    correo.getText(), telefono.getText(), tu.id());
-            exito("Usuario guardado correctamente.");
+
+            if (idUsuario == null) {
+                repositorio.registrarUsuario(nombre.getText(), apellido.getText(), matricula.getText(),
+                        correo.getText(), telefono.getText(), tu.id());
+                exito("Usuario guardado correctamente.");
+            } else {
+                repositorio.actualizarUsuario(idUsuario, nombre.getText(), apellido.getText(), matricula.getText(),
+                        correo.getText(), telefono.getText(), tu.id());
+                exito("Usuario actualizado correctamente.");
+            }
         } catch (Exception e) { fallo(e); }
     }
 }

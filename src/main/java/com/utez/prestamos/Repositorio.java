@@ -19,13 +19,15 @@ public class Repositorio {
         }
     }
 
-    public List<Object[]> consultarPrestamos() throws SQLException {
+    // --- MÉTODOS DE CONSULTA (SELECT) ---
+
+    public List<Prestamo> consultarPrestamos() throws SQLException {
         String sql = """
                 SELECT p.ID_PRESTAMO,
                        u.NOMBRE || ' ' || u.APELLIDO AS SOLICITANTE,
                        r.NOMBRE AS RECURSO,
-                       TO_CHAR(p.FECHA_PRESTAMO, 'DD/MM/YYYY') AS PRESTADO,
-                       TO_CHAR(p.FECHA_LIMITE, 'DD/MM/YYYY') AS VENCE,
+                       p.FECHA_PRESTAMO,
+                       p.FECHA_LIMITE,
                        ep.NOMBRE AS ESTADO
                 FROM PRESTAMO p
                 JOIN USUARIO u ON u.ID_USUARIO = p.ID_USUARIO
@@ -33,10 +35,25 @@ public class Repositorio {
                 JOIN ESTADOPRESTAMO ep ON ep.ID_ESTADO_PRESTAMO = p.ID_ESTADO_PRESTAMO
                 ORDER BY p.ID_PRESTAMO DESC
                 """;
-        return consultarFilas(sql);
+        List<Prestamo> lista = new ArrayList<>();
+        try (Connection con = Conexion.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                lista.add(new Prestamo(
+                        rs.getInt("ID_PRESTAMO"),
+                        rs.getString("SOLICITANTE"),
+                        rs.getString("RECURSO"),
+                        rs.getDate("FECHA_PRESTAMO").toLocalDate(),
+                        rs.getDate("FECHA_LIMITE").toLocalDate(),
+                        rs.getString("ESTADO")
+                ));
+            }
+        }
+        return lista;
     }
 
-    public List<Object[]> consultarRecursos() throws SQLException {
+    public List<Recurso> consultarRecursos() throws SQLException {
         String sql = """
                 SELECT r.ID_RECURSO,
                        r.NOMBRE,
@@ -58,13 +75,28 @@ public class Repositorio {
                 JOIN ESTADOFISICO ef ON ef.ID_ESTADO_FISICO = r.ID_ESTADO_FISICO_ACTUAL
                 ORDER BY r.ID_RECURSO
                 """;
-        return consultarFilas(sql);
+        List<Recurso> lista = new ArrayList<>();
+        try (Connection con = Conexion.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                lista.add(new Recurso(
+                        rs.getInt("ID_RECURSO"),
+                        rs.getString("NOMBRE"),
+                        rs.getString("NUMERO_SERIE"),
+                        rs.getString("TIPO"),
+                        rs.getString("ESTADO")
+                ));
+            }
+        }
+        return lista;
     }
 
-    public List<Object[]> consultarUsuarios() throws SQLException {
+    public List<Usuario> consultarUsuarios() throws SQLException {
         String sql = """
                 SELECT u.ID_USUARIO,
-                       u.NOMBRE || ' ' || u.APELLIDO AS NOMBRE,
+                       u.NOMBRE,
+                       u.APELLIDO,
                        u.MATRICULA,
                        tu.NOMBRE AS TIPO,
                        u.CORREO,
@@ -77,70 +109,27 @@ public class Repositorio {
                 JOIN TIPOUSUARIO tu ON tu.ID_TIPO_USUARIO = u.ID_TIPO_USUARIO
                 ORDER BY u.NOMBRE, u.APELLIDO
                 """;
-        return consultarFilas(sql);
-    }
-
-    private List<Object[]> consultarFilas(String sql) throws SQLException {
-        List<Object[]> filas = new ArrayList<>();
-        try (Connection con = Conexion.getConexion();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
-            int columnas = rs.getMetaData().getColumnCount();
-            while (rs.next()) {
-                Object[] fila = new Object[columnas];
-                for (int i = 0; i < columnas; i++) {
-                    fila[i] = rs.getObject(i + 1);
-                }
-                filas.add(fila);
-            }
-        }
-        return filas;
-    }
-
-    public List<Opcion> usuarios() throws SQLException {
-        return opciones("SELECT ID_USUARIO, NOMBRE || ' ' || APELLIDO FROM USUARIO ORDER BY NOMBRE");
-    }
-
-    public List<Opcion> recursosDisponibles() throws SQLException {
-        String sql = """
-                SELECT r.ID_RECURSO, r.NOMBRE || ' - ' || r.NUMERO_SERIE
-                FROM RECURSO r
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM PRESTAMO p
-                    JOIN ESTADOPRESTAMO ep
-                      ON ep.ID_ESTADO_PRESTAMO = p.ID_ESTADO_PRESTAMO
-                    WHERE p.ID_RECURSO = r.ID_RECURSO
-                      AND UPPER(ep.NOMBRE) = 'ACTIVO'
-                )
-                ORDER BY r.NOMBRE
-                """;
-        return opciones(sql);
-    }
-
-    public List<Opcion> estadosFisicos() throws SQLException {
-        return opciones("SELECT ID_ESTADO_FISICO, NOMBRE FROM ESTADOFISICO ORDER BY ID_ESTADO_FISICO");
-    }
-
-    public List<Opcion> tiposRecurso() throws SQLException {
-        return opciones("SELECT ID_TIPO_RECURSO, NOMBRE FROM TIPORECURSO ORDER BY NOMBRE");
-    }
-
-    public List<Opcion> tiposUsuario() throws SQLException {
-        return opciones("SELECT ID_TIPO_USUARIO, NOMBRE FROM TIPOUSUARIO ORDER BY NOMBRE");
-    }
-
-    private List<Opcion> opciones(String sql) throws SQLException {
-        List<Opcion> opciones = new ArrayList<>();
+        List<Usuario> lista = new ArrayList<>();
         try (Connection con = Conexion.getConexion();
              Statement st = con.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                opciones.add(new Opcion(rs.getInt(1), rs.getString(2)));
+                lista.add(new Usuario(
+                        rs.getInt("ID_USUARIO"),
+                        rs.getString("NOMBRE"),
+                        rs.getString("APELLIDO"),
+                        rs.getString("MATRICULA"),
+                        rs.getString("TIPO"),
+                        rs.getString("CORREO"),
+                        rs.getString("TELEFONO"),
+                        rs.getString("ESTADO")
+                ));
             }
         }
-        return opciones;
+        return lista;
     }
+
+    // --- MÉTODOS DE REGISTRO (INSERT) ---
 
     public void registrarPrestamo(int idUsuario, int idRecurso, int idEstadoFisico, LocalDate fechaPrestamo, LocalDate fechaLimite) throws SQLException {
         if (fechaLimite.isBefore(fechaPrestamo)) {
@@ -375,6 +364,43 @@ public class Repositorio {
             ps.setString(5, matricula.trim());
             ps.setString(6, correo.trim());
             ps.setString(7, telefono.trim());
+            ps.executeUpdate();
+        }
+    }
+
+    public Object[] obtenerDatosUsuario(int idUsuario) throws SQLException {
+        String sql = "SELECT NOMBRE, APELLIDO, MATRICULA, CORREO, TELEFONO, ID_TIPO_USUARIO FROM USUARIO WHERE ID_USUARIO = ?";
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Object[]{
+                            rs.getString("NOMBRE"),
+                            rs.getString("APELLIDO"),
+                            rs.getString("MATRICULA"),
+                            rs.getString("CORREO"),
+                            rs.getString("TELEFONO"),
+                            rs.getInt("ID_TIPO_USUARIO")
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    public void actualizarUsuario(int idUsuario, String nombre, String apellido, String matricula,
+                                  String correo, String telefono, int idTipo) throws SQLException {
+        String sql = "UPDATE USUARIO SET NOMBRE = ?, APELLIDO = ?, MATRICULA = ?, CORREO = ?, TELEFONO = ?, ID_TIPO_USUARIO = ? WHERE ID_USUARIO = ?";
+        try (Connection con = Conexion.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre.trim());
+            ps.setString(2, apellido.trim());
+            ps.setString(3, matricula.trim());
+            ps.setString(4, correo.trim());
+            ps.setString(5, telefono.trim());
+            ps.setInt(6, idTipo);
+            ps.setInt(7, idUsuario);
             ps.executeUpdate();
         }
     }
