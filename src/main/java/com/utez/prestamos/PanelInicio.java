@@ -94,11 +94,11 @@ public class PanelInicio extends PanelBase {
     @Override
     public void cargarDatos() {
         try {
-            List<Object[]> prestamos = repositorio.consultarPrestamos();
-            List<Object[]> recursos = repositorio.consultarRecursos();
-            List<Object[]> usuarios = repositorio.consultarUsuarios();
+            List<Prestamo> prestamos = repositorio.consultarPrestamos();
+            List<Recurso> recursos = repositorio.consultarRecursos();
+            List<Usuario> usuarios = repositorio.consultarUsuarios();
             modelo.setRowCount(0);
-            prestamos.stream().limit(8).forEach(modelo::addRow);
+            prestamos.stream().limit(8).forEach(p -> modelo.addRow(new Object[]{p.getId(), p.getSolicitante(), p.getRecurso(), p.getFechaPrestamo(), p.getFechaLimite(), p.getEstado()}));
             actualizarTarjeta(lblPrestamos, prestamos.size(), "Préstamos registrados");
             actualizarTarjeta(lblRecursos, recursos.size(), "Recursos registrados");
             actualizarTarjeta(lblUsuarios, usuarios.size(), "Usuarios registrados");

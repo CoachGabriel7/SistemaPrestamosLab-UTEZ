@@ -12,6 +12,26 @@ import java.util.List;
 
 public class Repositorio {
 
+    public Iterable<Opcion> usuarios() {
+        return new ArrayList<>();
+    }
+
+    public Iterable<Opcion> recursosDisponibles() {
+        return new ArrayList<>();
+    }
+
+    public Iterable<Opcion> estadosFisicos() {
+        return new ArrayList<>();
+    }
+
+    public Iterable<Opcion> tiposRecurso() {
+        return new ArrayList<>();
+    }
+
+    public Iterable<Opcion> tiposUsuario() {
+        return new ArrayList<>();
+    }
+
     public record Opcion(int id, String nombre) {
         @Override
         public String toString() {
